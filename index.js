@@ -59,22 +59,14 @@ class CountDown extends React.Component {
     AppState.removeEventListener('change', this._handleAppStateChange);
   }
 
-  componentDidUpdate(prevProps, prevState) {
-    if (this.props.until !== prevProps.until || this.props.id !== prevProps.id) {
+  componentWillReceiveProps(nextProps) {
+    if (this.props.until !== nextProps.until || this.props.id !== nextProps.id) {
       this.setState({
-        lastUntil: prevState.until,
-        until: Math.max(prevProps.until, 0)
+        lastUntil: this.state.until,
+        until: Math.max(nextProps.until, 0)
       });
     }
   }
-  // componentWillReceiveProps(nextProps) {
-  //   if (this.props.until !== nextProps.until || this.props.id !== nextProps.id) {
-  //     this.setState({
-  //       lastUntil: this.state.until,
-  //       until: Math.max(nextProps.until, 0)
-  //     });
-  //   }
-  // }
 
   _handleAppStateChange = currentAppState => {
     const {until, wentBackgroundAt} = this.state;
@@ -134,9 +126,9 @@ class CountDown extends React.Component {
     const {digitStyle, digitTxtStyle, size} = this.props;
     return (
       <View style={[
-        styles.digitCont,        
-        {width: size * 2.3, height: size * 2.6},
+        styles.digitCont,
         digitStyle,
+        {width: size * 2.3, height: size * 2.6},
       ]}>
         <Text style={[
           styles.digitTxt,
@@ -194,7 +186,19 @@ class CountDown extends React.Component {
     const {timeToShow, timeLabels, showSeparator} = this.props;
     const {until} = this.state;
     const {days, hours, minutes, seconds} = this.getTimeLeft();
-    const newTime = sprintf('%02d:%02d:%02d:%02d', days, hours, minutes, seconds).split(':');
+
+    const daysPlaceholder = timeToShow.includes('d') ? '%d' : '%02d';
+    const hoursPlaceholder = timeToShow.includes('h') ? '%d' : '%02d';
+    const minutesPlaceholder = timeToShow.includes('m') ? '%d' : '%02d';
+    const secondsPlaceholder = timeToShow.includes('s') ? '%d' : '%02d';
+
+    const newTime = sprintf(
+      daysPlaceholder + ':' +
+      hoursPlaceholder + ':' +
+      minutesPlaceholder + ':' +
+      secondsPlaceholder,
+      days, hours, minutes, seconds).split(':');
+
     const Component = this.props.onPress ? TouchableOpacity : View;
 
     return (
@@ -202,13 +206,13 @@ class CountDown extends React.Component {
         style={styles.timeCont}
         onPress={this.props.onPress}
       >
-        {timeToShow.includes('D') ? this.renderDoubleDigits(timeLabels.d, newTime[0]) : null}
-        {showSeparator && timeToShow.includes('D') && timeToShow.includes('H') ? this.renderSeparator() : null}
-        {timeToShow.includes('H') ? this.renderDoubleDigits(timeLabels.h, newTime[1]) : null}
-        {showSeparator && timeToShow.includes('H') && timeToShow.includes('M') ? this.renderSeparator() : null}
-        {timeToShow.includes('M') ? this.renderDoubleDigits(timeLabels.m, newTime[2]) : null}
-        {showSeparator && timeToShow.includes('M') && timeToShow.includes('S') ? this.renderSeparator() : null}
-        {timeToShow.includes('S') ? this.renderDoubleDigits(timeLabels.s, newTime[3]) : null}
+        {timeToShow.includes('D') || timeToShow.includes('d') ? this.renderDoubleDigits(timeLabels.d, newTime[0]) : null}
+        {showSeparator && (timeToShow.includes('D') || timeToShow.includes('d')) && (timeToShow.includes('H') || timeToShow.includes('h')) ? this.renderSeparator() : null}
+        {timeToShow.includes('H') || timeToShow.includes('h') ? this.renderDoubleDigits(timeLabels.h, newTime[1]) : null}
+        {showSeparator && (timeToShow.includes('H') || timeToShow.includes('h')) && (timeToShow.includes('M') || timeToShow.includes('m')) ? this.renderSeparator() : null}
+        {timeToShow.includes('M') || timeToShow.includes('m') ? this.renderDoubleDigits(timeLabels.m, newTime[2]) : null}
+        {showSeparator && (timeToShow.includes('M') || timeToShow.includes('m')) && (timeToShow.includes('S') || timeToShow.includes('s')) ? this.renderSeparator() : null}
+        {timeToShow.includes('S') || timeToShow.includes('s') ? this.renderDoubleDigits(timeLabels.s, newTime[3]) : null}
       </Component>
     );
   };
@@ -270,6 +274,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
 });
+
 
 export default CountDown;
 export { CountDown };
